@@ -1,9 +1,10 @@
 import { db } from '@/lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { calculateProjectedBalance, forecastCapDate } from '@/utils/pto-calc';
-import { format } from 'date-fns';
+import { format, subDays, isAfter, parseISO } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Wallet, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Wallet, TrendingUp, AlertTriangle, Calendar } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export function Dashboard() {
   const reset = useLiveQuery(() => db.resets.orderBy('id').last());
@@ -11,9 +12,19 @@ export function Dashboard() {
 
   if (!reset) return null;
 
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const now = new Date();
+  const today = format(now, 'yyyy-MM-dd');
+  const thirtyDaysAgo = subDays(now, 30);
+  
   const { finalBalance } = calculateProjectedBalance(reset, entries || [], today);
   const capDate = forecastCapDate(reset, entries || []);
+
+  const relevantEntries = (entries || [])
+    .filter(entry => {
+      const endDate = parseISO(entry.endDate);
+      return isAfter(endDate, thirtyDaysAgo);
+    })
+    .sort((a, b) => a.startDate.localeCompare(b.startDate));
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl mx-auto">
@@ -59,6 +70,44 @@ export function Dashboard() {
           </CardContent>
         </Card>
       )}
+
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            Recent & Upcoming PTO
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {relevantEntries.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No recent or upcoming PTO entries.
+              </p>
+            ) : (
+              relevantEntries.map((entry) => {
+                const isUpcoming = isAfter(parseISO(entry.startDate), now);
+                return (
+                  <div key={entry.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                    <div className="space-y-1">
+                      <div className="text-sm font-medium">
+                        {format(parseISO(entry.startDate), 'MMM d')} 
+                        {entry.startDate !== entry.endDate && ` - ${format(parseISO(entry.endDate), 'MMM d')}`}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {entry.description || 'PTO'} • {entry.totalHours}h
+                      </div>
+                    </div>
+                    <Badge variant={isUpcoming ? "default" : "secondary"}>
+                      {isUpcoming ? "Upcoming" : "Recent"}
+                    </Badge>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
