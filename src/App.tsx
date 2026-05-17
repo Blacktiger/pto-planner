@@ -7,8 +7,10 @@ import { PTOEntryForm } from '@/components/PTOEntryForm';
 import { PTOList } from '@/components/PTOList';
 import { ProjectionCalculator } from '@/components/ProjectionCalculator';
 import { Timeline } from '@/components/Timeline';
+import { ImportExport } from '@/components/ImportExport';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus, LayoutDashboard, History } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Settings, Plus, LayoutDashboard, History, AlertCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function App() {
@@ -38,20 +40,13 @@ function App() {
           <div className="flex items-center gap-2 font-bold text-xl px-4">
             PTO Planner
           </div>
-          <Button variant="ghost" size="icon" onClick={() => {
-            if (confirm('Reset everything? This will clear all data.')) {
-              db.delete().then(() => window.location.reload());
-            }
-          }}>
-            <Settings className="w-5 h-5" />
-          </Button>
         </div>
       </header>
 
       <main className="container p-4 sm:p-8 space-y-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           <div className="flex justify-center">
-            <TabsList className="grid w-full max-w-md grid-cols-3">
+            <TabsList className="grid w-full max-w-md grid-cols-4">
               <TabsTrigger value="dashboard" className="flex items-center gap-2">
                 <LayoutDashboard className="w-4 h-4" />
                 <span className="hidden sm:inline">Dash</span>
@@ -63,6 +58,10 @@ function App() {
               <TabsTrigger value="timeline" className="flex items-center gap-2">
                 <History className="w-4 h-4" />
                 <span className="hidden sm:inline">Time</span>
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Set</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -80,12 +79,33 @@ function App() {
           <TabsContent value="timeline" className="space-y-8 outline-none">
             <Timeline />
           </TabsContent>
+
+          <TabsContent value="settings" className="space-y-8 outline-none">
+            <ImportExport />
+            <Card className="w-full max-w-4xl mx-auto">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-destructive">
+                  <AlertCircle className="w-5 h-5" />
+                  Danger Zone
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button variant="destructive" className="w-full" onClick={() => {
+                  if (confirm('Are you absolutely sure? This will permanently delete all your PTO data.')) {
+                    db.delete().then(() => window.location.reload());
+                  }
+                }}>
+                  Reset All Data
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
 
       {/* Mobile Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background sm:hidden">
-        <div className="grid h-16 grid-cols-3">
+        <div className="grid h-16 grid-cols-4">
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`flex flex-col items-center justify-center gap-1 ${activeTab === 'dashboard' ? 'text-primary' : 'text-muted-foreground'}`}
@@ -106,6 +126,13 @@ function App() {
           >
             <History className="w-5 h-5" />
             <span className="text-xs">Time</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`flex flex-col items-center justify-center gap-1 ${activeTab === 'settings' ? 'text-primary' : 'text-muted-foreground'}`}
+          >
+            <Settings className="w-5 h-5" />
+            <span className="text-xs">Set</span>
           </button>
         </div>
       </nav>
