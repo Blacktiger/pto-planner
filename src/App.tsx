@@ -15,9 +15,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const reset = useLiveQuery(() => db.resets.orderBy('id').last());
+  
+  const reset = useLiveQuery(async () => {
+    try {
+      console.log('App: Fetching last reset...');
+      const lastReset = await db.resets.orderBy('id').last();
+      console.log('App: Last reset result:', lastReset);
+      return lastReset || null; // Explicitly return null if no result
+    } catch (error) {
+      console.error('App: Dexie query failed:', error);
+      return null;
+    }
+  });
 
-  if (reset === undefined) return <div className="p-8 text-center">Loading...</div>;
+  console.log('App: Render state - reset is:', reset);
+
+  if (reset === undefined) {
+    return (
+      <div className="p-8 text-center flex flex-col items-center gap-4">
+        <div>Loading database...</div>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Retry Load
+        </Button>
+      </div>
+    );
+  }
 
   if (!reset) {
     return (
