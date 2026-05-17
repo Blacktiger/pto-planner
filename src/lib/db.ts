@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import { PTOEntry, BalanceReset, AppSettings } from '../types/pto';
+import type { PTOEntry, BalanceReset, AppSettings } from '../types/pto';
 
 export class PTODatabase extends Dexie {
   entries!: Table<PTOEntry>;

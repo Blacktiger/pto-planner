@@ -72,7 +72,7 @@ export function PTOEntryForm({ onSuccess }: PTOEntryFormProps) {
                 id="startDate"
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value)}
                 required
               />
             </div>
@@ -82,7 +82,7 @@ export function PTOEntryForm({ onSuccess }: PTOEntryFormProps) {
                 id="endDate"
                 type="date"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value)}
                 required
               />
             </div>
@@ -94,7 +94,7 @@ export function PTOEntryForm({ onSuccess }: PTOEntryFormProps) {
               type="number"
               step="0.5"
               value={hoursPerDay}
-              onChange={(e) => setHoursPerDay(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setHoursPerDay(e.target.value)}
               required
             />
           </div>
@@ -104,7 +104,7 @@ export function PTOEntryForm({ onSuccess }: PTOEntryFormProps) {
               id="description"
               placeholder="Vacation, Appointment, etc."
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
             />
           </div>
           <div className="text-sm font-medium text-blue-600 dark:text-blue-400">

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateAccrualEvents, calculateProjectedBalance, forecastCapDate } from '../utils/pto-calc';
-import { BalanceReset, PTOEntry } from '../types/pto';
+import type { BalanceReset, PTOEntry } from '../types/pto';
 
 describe('Accrual Logic', () => {
   it('should generate accruals for a partial month (starting from 1st)', () => {

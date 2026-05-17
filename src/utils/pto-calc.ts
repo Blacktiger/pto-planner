@@ -10,7 +10,7 @@ import {
   isWeekend,
   eachDayOfInterval
 } from 'date-fns';
-import { TimelineEvent, BalanceReset, PTOEntry } from '../types/pto';
+import type { TimelineEvent, BalanceReset, PTOEntry } from '../types/pto';
 
 export const ACCRUAL_RATE = 8.3333333333;
 export const MAX_BALANCE = 240;

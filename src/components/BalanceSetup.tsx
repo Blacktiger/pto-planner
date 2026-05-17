@@ -43,7 +43,7 @@ export function BalanceSetup({ onSuccess }: BalanceSetupProps) {
               step="0.01"
               placeholder="0.00"
               value={balance}
-              onChange={(e) => setBalance(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBalance(e.target.value)}
               required
             />
           </div>
@@ -53,7 +53,7 @@ export function BalanceSetup({ onSuccess }: BalanceSetupProps) {
               id="asOfDate"
               type="date"
               value={asOfDate}
-              onChange={(e) => setAsOfDate(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAsOfDate(e.target.value)}
               required
             />
           </div>

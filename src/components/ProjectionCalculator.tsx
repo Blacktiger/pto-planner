@@ -35,7 +35,7 @@ export function ProjectionCalculator() {
             id="targetDate"
             type="date"
             value={targetDate}
-            onChange={(e) => setTargetDate(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTargetDate(e.target.value)}
           />
         </div>
 
