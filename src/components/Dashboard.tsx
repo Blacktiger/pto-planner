@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Wallet, TrendingUp, AlertTriangle } from 'lucide-react';
 
 export function Dashboard() {
-  const reset = useLiveQuery(() => db.resets.toCollection().last());
+  const reset = useLiveQuery(() => db.resets.orderBy('id').last());
   const entries = useLiveQuery(() => db.entries.toArray());
 
   if (!reset) return null;

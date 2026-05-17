@@ -7,7 +7,7 @@ import { ListTree, PlusCircle, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Timeline() {
-  const reset = useLiveQuery(() => db.resets.toCollection().last());
+  const reset = useLiveQuery(() => db.resets.orderBy('id').last());
   const entries = useLiveQuery(() => db.entries.toArray());
 
   if (!reset) return null;

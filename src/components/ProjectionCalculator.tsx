@@ -13,7 +13,7 @@ export function ProjectionCalculator() {
     format(addMonths(new Date(), 3), 'yyyy-MM-dd')
   );
   
-  const reset = useLiveQuery(() => db.resets.toCollection().last());
+  const reset = useLiveQuery(() => db.resets.orderBy('id').last());
   const entries = useLiveQuery(() => db.entries.toArray());
 
   if (!reset) return null;

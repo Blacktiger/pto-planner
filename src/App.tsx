@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const reset = useLiveQuery(() => db.resets.toCollection().last());
+  const reset = useLiveQuery(() => db.resets.orderBy('id').last());
 
   if (reset === undefined) return <div className="p-8 text-center">Loading...</div>;
 
