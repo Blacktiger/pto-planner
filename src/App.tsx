@@ -35,40 +35,38 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-8">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <div className="min-h-screen bg-background flex flex-col">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-1">
         <header className="sticky top-0 z-10 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container flex h-16 items-center justify-between px-4 mx-auto">
+          <div className="max-w-screen-xl mx-auto h-16 flex items-center justify-between px-4 sm:px-8">
             <div className="font-bold text-xl flex-shrink-0">
               PTO Planner
             </div>
             
             <div className="hidden sm:block">
-              <TabsList className="bg-transparent">
-                <TabsTrigger value="dashboard" className="flex items-center gap-2 data-[state=active]:bg-muted">
+              <TabsList className="bg-transparent h-auto p-0">
+                <TabsTrigger value="dashboard" className="px-4 py-2 flex items-center gap-2 data-[state=active]:bg-muted">
                   <LayoutDashboard className="w-4 h-4" />
                   Dash
                 </TabsTrigger>
-                <TabsTrigger value="pto" className="flex items-center gap-2 data-[state=active]:bg-muted">
+                <TabsTrigger value="pto" className="px-4 py-2 flex items-center gap-2 data-[state=active]:bg-muted">
                   <Plus className="w-4 h-4" />
                   Add
                 </TabsTrigger>
-                <TabsTrigger value="timeline" className="flex items-center gap-2 data-[state=active]:bg-muted">
+                <TabsTrigger value="timeline" className="px-4 py-2 flex items-center gap-2 data-[state=active]:bg-muted">
                   <History className="w-4 h-4" />
                   Time
                 </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-muted">
+                <TabsTrigger value="settings" className="px-4 py-2 flex items-center gap-2 data-[state=active]:bg-muted">
                   <Settings className="w-4 h-4" />
                   Set
                 </TabsTrigger>
               </TabsList>
             </div>
-            
-            <div className="w-10 sm:hidden" /> {/* Spacer for centering mobile title if needed */}
           </div>
         </header>
 
-        <main className="container mx-auto p-4 sm:p-8 space-y-8">
+        <main className="flex-1 w-full max-w-screen-xl mx-auto p-4 sm:p-8 pb-24 sm:pb-8">
           <TabsContent value="dashboard" className="space-y-8 outline-none mt-0">
             <Dashboard />
             <ProjectionCalculator />
