@@ -16,30 +16,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  const reset = useLiveQuery(async () => {
-    try {
-      console.log('App: Fetching last reset...');
-      const lastReset = await db.resets.orderBy('id').last();
-      console.log('App: Last reset result:', lastReset);
-      return lastReset || null; // Explicitly return null if no result
-    } catch (error) {
-      console.error('App: Dexie query failed:', error);
-      return null;
-    }
-  });
+  const reset = useLiveQuery(() => db.resets.orderBy('id').last());
 
-  console.log('App: Render state - reset is:', reset);
-
-  if (reset === undefined) {
-    return (
-      <div className="p-8 text-center flex flex-col items-center gap-4">
-        <div>Loading database...</div>
-        <Button variant="outline" onClick={() => window.location.reload()}>
-          Retry Load
-        </Button>
-      </div>
-    );
-  }
+  if (reset === undefined) return <div className="p-8 text-center">Loading...</div>;
 
   if (!reset) {
     return (
@@ -57,52 +36,54 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background pb-20 sm:pb-8">
-      <header className="sticky top-0 z-10 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-xl px-4">
-            PTO Planner
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <header className="sticky top-0 z-10 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container flex h-16 items-center justify-between px-4 mx-auto">
+            <div className="font-bold text-xl flex-shrink-0">
+              PTO Planner
+            </div>
+            
+            <div className="hidden sm:block">
+              <TabsList className="bg-transparent">
+                <TabsTrigger value="dashboard" className="flex items-center gap-2 data-[state=active]:bg-muted">
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dash
+                </TabsTrigger>
+                <TabsTrigger value="pto" className="flex items-center gap-2 data-[state=active]:bg-muted">
+                  <Plus className="w-4 h-4" />
+                  Add
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="flex items-center gap-2 data-[state=active]:bg-muted">
+                  <History className="w-4 h-4" />
+                  Time
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-muted">
+                  <Settings className="w-4 h-4" />
+                  Set
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <div className="w-10 sm:hidden" /> {/* Spacer for centering mobile title if needed */}
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="container p-4 sm:p-8 space-y-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <div className="flex justify-center">
-            <TabsList className="grid w-full max-w-md grid-cols-4">
-              <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                <LayoutDashboard className="w-4 h-4" />
-                <span className="hidden sm:inline">Dash</span>
-              </TabsTrigger>
-              <TabsTrigger value="pto" className="flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Add</span>
-              </TabsTrigger>
-              <TabsTrigger value="timeline" className="flex items-center gap-2">
-                <History className="w-4 h-4" />
-                <span className="hidden sm:inline">Time</span>
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Set</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="dashboard" className="space-y-8 outline-none">
+        <main className="container mx-auto p-4 sm:p-8 space-y-8">
+          <TabsContent value="dashboard" className="space-y-8 outline-none mt-0">
             <Dashboard />
             <ProjectionCalculator />
           </TabsContent>
 
-          <TabsContent value="pto" className="space-y-8 outline-none">
+          <TabsContent value="pto" className="space-y-8 outline-none mt-0">
             <PTOEntryForm onSuccess={() => setActiveTab('dashboard')} />
             <PTOList />
           </TabsContent>
 
-          <TabsContent value="timeline" className="space-y-8 outline-none">
+          <TabsContent value="timeline" className="space-y-8 outline-none mt-0">
             <Timeline />
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-8 outline-none">
+          <TabsContent value="settings" className="space-y-8 outline-none mt-0">
             <ImportExport />
             <Card className="w-full max-w-4xl mx-auto">
               <CardHeader>
@@ -122,8 +103,8 @@ function App() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
-      </main>
+        </main>
+      </Tabs>
 
       {/* Mobile Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background sm:hidden">
