@@ -51,15 +51,15 @@ function App() {
                 </TabsTrigger>
                 <TabsTrigger value="pto" className="px-4 py-2 flex items-center gap-2 data-[state=active]:bg-muted">
                   <Plus className="w-4 h-4" />
-                  Add
+                  Time Off
                 </TabsTrigger>
                 <TabsTrigger value="timeline" className="px-4 py-2 flex items-center gap-2 data-[state=active]:bg-muted">
                   <History className="w-4 h-4" />
-                  Time
+                  Timeline
                 </TabsTrigger>
                 <TabsTrigger value="settings" className="px-4 py-2 flex items-center gap-2 data-[state=active]:bg-muted">
                   <Settings className="w-4 h-4" />
-                  Set
+                  Settings
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -119,21 +119,21 @@ function App() {
             className={`flex flex-col items-center justify-center gap-1 ${activeTab === 'pto' ? 'text-primary' : 'text-muted-foreground'}`}
           >
             <Plus className="w-5 h-5" />
-            <span className="text-xs">Add</span>
+            <span className="text-xs">Time Off</span>
           </button>
           <button
             onClick={() => setActiveTab('timeline')}
             className={`flex flex-col items-center justify-center gap-1 ${activeTab === 'timeline' ? 'text-primary' : 'text-muted-foreground'}`}
           >
             <History className="w-5 h-5" />
-            <span className="text-xs">Time</span>
+            <span className="text-xs">Timeline</span>
           </button>
           <button
             onClick={() => setActiveTab('settings')}
             className={`flex flex-col items-center justify-center gap-1 ${activeTab === 'settings' ? 'text-primary' : 'text-muted-foreground'}`}
           >
             <Settings className="w-5 h-5" />
-            <span className="text-xs">Set</span>
+            <span className="text-xs">Settings</span>
           </button>
         </div>
       </nav>
