@@ -10,12 +10,32 @@ import {
   isWeekend,
   eachDayOfInterval
 } from 'date-fns';
-import type { TimelineEvent, BalanceReset, PTOEntry } from '../types/pto';
+import type { TimelineEvent, BalanceReset, PTOEntry, AppSettings } from '../types/pto';
 
-export const ACCRUAL_RATE = 8.3333333333;
-export const MAX_BALANCE = 240;
+export type PTOCalcSettings = Pick<AppSettings, 'accrualRate' | 'maxBalance'>;
 
-export function generateAccrualEvents(startDate: string, endDate: string): Partial<TimelineEvent>[] {
+export const DEFAULT_SETTINGS: PTOCalcSettings = {
+  accrualRate: 8.3333333333,
+  maxBalance: 240,
+};
+
+/** @deprecated Use DEFAULT_SETTINGS.accrualRate */
+export const ACCRUAL_RATE = DEFAULT_SETTINGS.accrualRate;
+/** @deprecated Use DEFAULT_SETTINGS.maxBalance */
+export const MAX_BALANCE = DEFAULT_SETTINGS.maxBalance;
+
+export function resolveSettings(settings?: Partial<PTOCalcSettings> | null): PTOCalcSettings {
+  return {
+    accrualRate: settings?.accrualRate ?? DEFAULT_SETTINGS.accrualRate,
+    maxBalance: settings?.maxBalance ?? DEFAULT_SETTINGS.maxBalance,
+  };
+}
+
+export function generateAccrualEvents(
+  startDate: string,
+  endDate: string,
+  settings: PTOCalcSettings = DEFAULT_SETTINGS
+): Partial<TimelineEvent>[] {
   const events: Partial<TimelineEvent>[] = [];
   const start = parseISO(startDate);
   const end = parseISO(endDate);
@@ -31,7 +51,7 @@ export function generateAccrualEvents(startDate: string, endDate: string): Parti
         events.push({
           type: 'accrual',
           date: format(date, 'yyyy-MM-dd'),
-          amount: ACCRUAL_RATE,
+          amount: settings.accrualRate,
           description: `Accrual for ${format(date, 'MMM d')}`
         });
       }
@@ -46,21 +66,21 @@ export function generateAccrualEvents(startDate: string, endDate: string): Parti
 export function calculateProjectedBalance(
   reset: BalanceReset,
   entries: PTOEntry[],
-  targetDate: string
+  targetDate: string,
+  settings: PTOCalcSettings = DEFAULT_SETTINGS
 ) {
   let currentBalance = reset.balance;
   let totalLost = 0;
   const timeline: TimelineEvent[] = [];
 
   const rawEvents: Partial<TimelineEvent>[] = [
-    ...generateAccrualEvents(reset.asOfDate, targetDate)
+    ...generateAccrualEvents(reset.asOfDate, targetDate, settings)
   ];
 
   entries.forEach(entry => {
     const start = parseISO(entry.startDate);
     const end = parseISO(entry.endDate);
     
-    // Check if entry is within reset date and target date range
     const resetDate = parseISO(reset.asOfDate);
     const target = parseISO(targetDate);
 
@@ -81,10 +101,8 @@ export function calculateProjectedBalance(
     });
   });
 
-  // Sort by date, then by type (accrual first)
   rawEvents.sort((a, b) => {
     if (a.date !== b.date) return a.date!.localeCompare(b.date!);
-    // Same day: accrual comes before pto
     if (a.type === 'accrual' && b.type === 'pto') return -1;
     if (a.type === 'pto' && b.type === 'accrual') return 1;
     return 0;
@@ -95,9 +113,9 @@ export function calculateProjectedBalance(
       const added = event.amount!;
       const potentialBalance = currentBalance + added;
       let lost = 0;
-      if (potentialBalance > MAX_BALANCE) {
-        lost = potentialBalance - MAX_BALANCE;
-        currentBalance = MAX_BALANCE;
+      if (potentialBalance > settings.maxBalance) {
+        lost = potentialBalance - settings.maxBalance;
+        currentBalance = settings.maxBalance;
       } else {
         currentBalance = potentialBalance;
       }
@@ -124,11 +142,15 @@ export function calculateProjectedBalance(
   };
 }
 
-export function forecastCapDate(reset: BalanceReset, entries: PTOEntry[]) {
-  const maxDate = addMonths(parseISO(reset.asOfDate), 60); // 5 years
+export function forecastCapDate(
+  reset: BalanceReset,
+  entries: PTOEntry[],
+  settings: PTOCalcSettings = DEFAULT_SETTINGS
+) {
+  const maxDate = addMonths(parseISO(reset.asOfDate), 60);
   const targetDateStr = format(maxDate, 'yyyy-MM-dd');
   
-  const { timeline } = calculateProjectedBalance(reset, entries, targetDateStr);
+  const { timeline } = calculateProjectedBalance(reset, entries, targetDateStr, settings);
   
   const capEvent = timeline.find(e => e.type === 'accrual' && (e.lostAmount || 0) > 0);
   return capEvent ? capEvent.date : null;

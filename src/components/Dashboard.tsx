@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { calculateProjectedBalance, forecastCapDate } from '@/utils/pto-calc';
+import { useAppSettings } from '@/hooks/useAppSettings';
 import { format, subDays, isAfter, parseISO } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Wallet, TrendingUp, AlertTriangle, Calendar } from 'lucide-react';
@@ -9,15 +10,17 @@ import { Badge } from '@/components/ui/badge';
 export function Dashboard() {
   const reset = useLiveQuery(() => db.resets.orderBy('id').last());
   const entries = useLiveQuery(() => db.entries.toArray());
+  const settings = useAppSettings();
 
   if (!reset) return null;
 
   const now = new Date();
   const today = format(now, 'yyyy-MM-dd');
   const thirtyDaysAgo = subDays(now, 30);
-  
-  const { finalBalance } = calculateProjectedBalance(reset, entries || [], today);
-  const capDate = forecastCapDate(reset, entries || []);
+  const capWarningThreshold = settings.maxBalance - 10;
+
+  const { finalBalance } = calculateProjectedBalance(reset, entries || [], today, settings);
+  const capDate = forecastCapDate(reset, entries || [], settings);
 
   const relevantEntries = (entries || [])
     .filter(entry => {
@@ -55,17 +58,17 @@ export function Dashboard() {
             {capDate ? format(new Date(capDate + 'T00:00:00'), 'MMM d, yyyy') : 'No cap hit'}
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Estimated date hitting 240h
+            Estimated date hitting {settings.maxBalance}h
           </p>
         </CardContent>
       </Card>
-      
-      {finalBalance >= 230 && (
+
+      {finalBalance >= capWarningThreshold && (
         <Card className="md:col-span-2 border-orange-500 bg-orange-50 dark:bg-orange-950/20">
           <CardContent className="p-4 flex items-center gap-3 text-orange-700 dark:text-orange-400">
             <AlertTriangle className="w-5 h-5 flex-shrink-0" />
             <div className="text-sm font-medium">
-              You are nearing the 240h cap. Consider planning some PTO!
+              You are nearing the {settings.maxBalance}h cap. Consider planning some PTO!
             </div>
           </CardContent>
         </Card>
@@ -91,15 +94,15 @@ export function Dashboard() {
                   <div key={entry.id} className="flex items-center justify-between py-2 border-b last:border-0">
                     <div className="space-y-1">
                       <div className="text-sm font-medium">
-                        {format(parseISO(entry.startDate), 'MMM d')} 
+                        {format(parseISO(entry.startDate), 'MMM d')}
                         {entry.startDate !== entry.endDate && ` - ${format(parseISO(entry.endDate), 'MMM d')}`}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {entry.description || 'PTO'} • {entry.totalHours}h
                       </div>
                     </div>
-                    <Badge variant={isUpcoming ? "default" : "secondary"}>
-                      {isUpcoming ? "Upcoming" : "Recent"}
+                    <Badge variant={isUpcoming ? 'default' : 'secondary'}>
+                      {isUpcoming ? 'Upcoming' : 'Recent'}
                     </Badge>
                   </div>
                 );

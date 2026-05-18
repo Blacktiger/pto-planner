@@ -57,6 +57,21 @@ describe('Balance Projection', () => {
   });
 });
 
+describe('Custom settings', () => {
+  it('should respect custom accrual rate and max balance', () => {
+    const reset: BalanceReset = { balance: 100, asOfDate: '2026-05-01', createdAt: Date.now() };
+    const customSettings = { accrualRate: 10, maxBalance: 110 };
+
+    const result = calculateProjectedBalance(reset, [], '2026-05-01', customSettings);
+    expect(result.finalBalance).toBe(110);
+    expect(result.totalLost).toBe(0);
+
+    const overCap = calculateProjectedBalance(reset, [], '2026-05-15', customSettings);
+    expect(overCap.finalBalance).toBe(110);
+    expect(overCap.totalLost).toBe(10);
+  });
+});
+
 describe('Cap Forecast', () => {
   it('should forecast the date when cap is hit', () => {
     const reset: BalanceReset = { balance: 230, asOfDate: '2026-05-01', createdAt: Date.now() };

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { db } from '@/lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { calculateProjectedBalance } from '@/utils/pto-calc';
+import { useAppSettings } from '@/hooks/useAppSettings';
 import { format, addMonths } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,10 +16,11 @@ export function ProjectionCalculator() {
   
   const reset = useLiveQuery(() => db.resets.orderBy('id').last());
   const entries = useLiveQuery(() => db.entries.toArray());
+  const settings = useAppSettings();
 
   if (!reset) return null;
 
-  const { finalBalance, totalLost } = calculateProjectedBalance(reset, entries || [], targetDate);
+  const { finalBalance, totalLost } = calculateProjectedBalance(reset, entries || [], targetDate, settings);
 
   return (
     <Card className="w-full max-w-4xl mx-auto">

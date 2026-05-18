@@ -8,6 +8,7 @@ import { PTOList } from '@/components/PTOList';
 import { ProjectionCalculator } from '@/components/ProjectionCalculator';
 import { Timeline } from '@/components/Timeline';
 import { ImportExport } from '@/components/ImportExport';
+import { SettingsForm } from '@/components/SettingsForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Settings, Plus, LayoutDashboard, History, AlertCircle } from 'lucide-react';
@@ -82,6 +83,7 @@ function App() {
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-8 outline-none mt-0">
+            <SettingsForm />
             <ImportExport />
             <Card className="w-full max-w-4xl mx-auto">
               <CardHeader>

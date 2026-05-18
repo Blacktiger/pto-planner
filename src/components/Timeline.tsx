@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { calculateProjectedBalance } from '@/utils/pto-calc';
+import { useAppSettings } from '@/hooks/useAppSettings';
 import { format, addMonths } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ListTree, PlusCircle, MinusCircle } from 'lucide-react';
@@ -9,12 +10,13 @@ import { cn } from '@/lib/utils';
 export function Timeline() {
   const reset = useLiveQuery(() => db.resets.orderBy('id').last());
   const entries = useLiveQuery(() => db.entries.toArray());
+  const settings = useAppSettings();
 
   if (!reset) return null;
 
   // Show timeline for next 6 months
   const targetDate = format(addMonths(new Date(), 6), 'yyyy-MM-dd');
-  const { timeline } = calculateProjectedBalance(reset, entries || [], targetDate);
+  const { timeline } = calculateProjectedBalance(reset, entries || [], targetDate, settings);
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
