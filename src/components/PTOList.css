@@ -1,0 +1,13 @@
+@layer components {
+  .pto-list-row {
+    @apply flex justify-between items-center;
+  }
+
+  .pto-list-row-title {
+    @apply font-medium;
+  }
+
+  .pto-list-row-meta {
+    @apply text-sm text-muted-foreground;
+  }
+}

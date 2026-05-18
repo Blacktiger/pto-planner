@@ -1,0 +1,14 @@
+/**
+ * Aggregates co-located component styles for Tailwind processing.
+ * Imported from src/index.css after @tailwind directives.
+ *
+ * Add a new @import when you create a feature stylesheet.
+ * @see docs/STYLING.md
+ */
+@import "./shared.css";
+@import "../App.css";
+@import "../components/Dashboard.css";
+@import "../components/ProjectionCalculator.css";
+@import "../components/Timeline.css";
+@import "../components/PTOList.css";
+@import "../components/ImportExport.css";

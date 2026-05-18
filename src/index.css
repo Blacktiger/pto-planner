@@ -54,3 +54,6 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Co-located component styles — @see docs/STYLING.md */
+@import "./styles/index.css";

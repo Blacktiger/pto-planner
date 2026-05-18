@@ -1,0 +1,13 @@
+@layer components {
+  .import-export-actions {
+    @apply flex flex-col sm:flex-row gap-4;
+  }
+
+  .import-export-action {
+    @apply flex-1 relative;
+  }
+
+  .import-export-hint {
+    @apply flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 p-3 rounded;
+  }
+}

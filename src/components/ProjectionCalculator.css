@@ -1,0 +1,21 @@
+@layer components {
+  .projection-summary {
+    @apply grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg;
+  }
+
+  .projection-stat {
+    @apply text-center;
+  }
+
+  .projection-stat-label {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .projection-stat-value {
+    @apply text-2xl font-bold;
+  }
+
+  .projection-stat-value--lost {
+    @apply text-2xl font-bold text-destructive;
+  }
+}

@@ -285,8 +285,18 @@ Prioritized path from current code to target architecture. **Docs may describe s
 | P1 | `useProjectedBalance(targetDate)` shared hook | Planned |
 | P2 | Balance reconciliation flow | Planned |
 | P2 | Colocate features in folders (`Dashboard/`, `Settings/`, …) | Planned |
+| P2 | Migrate feature TSX to semantic classes (see [STYLING.md](./STYLING.md)) | Planned |
 | P3 | Rename `utils/pto-calc` → `domain/` | Optional |
 | P3 | Extract write helpers (`deletePtoEntry`, `saveSettings`) in data layer | Optional |
+| P3 | shadcn wrappers in `components/app/` (tabs, card layouts) | Optional |
+
+---
+
+## Styling
+
+Application components use **semantic CSS classes** in **co-located `*.css` files** (registered via `src/styles/index.css`), not Tailwind utility strings in TSX. shadcn primitives under `src/components/ui/` stay generated and unmodified; customize via wrappers in `src/components/app/`.
+
+See [STYLING.md](./STYLING.md).
 
 ---
 
@@ -294,3 +304,4 @@ Prioritized path from current code to target architecture. **Docs may describe s
 
 - [DOMAIN.md](./DOMAIN.md) — projection algorithm and business rules
 - [DATA.md](./DATA.md) — Dexie schema, import/export, migrations
+- [STYLING.md](./STYLING.md) — semantic classes, shadcn wrappers, migration
