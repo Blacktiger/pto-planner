@@ -5,6 +5,8 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Settings as SettingsIcon, Save } from 'lucide-react';
 import { DEFAULT_SETTINGS } from '@/utils/pto-calc';
 
@@ -12,6 +14,7 @@ export function SettingsForm() {
   const settings = useLiveQuery(() => db.settings.orderBy('id').last());
   const [accrualRate, setAccrualRate] = useState<string>(DEFAULT_SETTINGS.accrualRate.toString());
   const [maxBalance, setMaxBalance] = useState<string>(DEFAULT_SETTINGS.maxBalance.toString());
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -26,11 +29,9 @@ export function SettingsForm() {
     const parsedMaxBalance = parseFloat(maxBalance);
 
     if (!Number.isFinite(parsedAccrualRate) || parsedAccrualRate <= 0) {
-      alert('Accrual rate must be a positive number.');
       return;
     }
     if (!Number.isFinite(parsedMaxBalance) || parsedMaxBalance <= 0) {
-      alert('Maximum balance must be a positive number.');
       return;
     }
 
@@ -39,19 +40,30 @@ export function SettingsForm() {
       accrualRate: parsedAccrualRate,
       maxBalance: parsedMaxBalance,
     });
-    alert('Settings saved!');
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <SettingsIcon className="w-5 h-5" />
+          <SettingsIcon className="h-5 w-5" />
           App Settings
         </CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <Label>Appearance</Label>
+              <p className="text-xs text-muted-foreground">Light, dark, or match your system</p>
+            </div>
+            <ThemeToggle />
+          </div>
+
+          <Separator />
+
           <div className="space-y-2">
             <Label htmlFor="accrualRate">Accrual Rate (Hours per period)</Label>
             <Input
@@ -76,14 +88,17 @@ export function SettingsForm() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMaxBalance(e.target.value)}
               required
             />
-            <p className="text-xs text-muted-foreground">
-              Usually 240 hours.
-            </p>
+            <p className="text-xs text-muted-foreground">Usually 240 hours.</p>
           </div>
         </CardContent>
-        <CardFooter>
-          <Button type="submit" className="w-full gap-2">
-            <Save className="w-4 h-4" />
+        <CardFooter className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          {saved ? (
+            <p className="text-sm text-muted-foreground">Settings saved.</p>
+          ) : (
+            <span />
+          )}
+          <Button type="submit" className="w-full gap-2 sm:w-auto">
+            <Save className="h-4 w-4" />
             Save Settings
           </Button>
         </CardFooter>

@@ -9,21 +9,36 @@ import { ProjectionCalculator } from '@/components/ProjectionCalculator';
 import { Timeline } from '@/components/Timeline';
 import { ImportExport } from '@/components/ImportExport';
 import { SettingsForm } from '@/components/SettingsForm';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Settings, Plus, LayoutDashboard, History, AlertCircle } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ResetAllDataCard } from '@/components/reset-all-data-card';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { Settings, Plus, LayoutDashboard, History } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+
+const tabs = [
+  { value: 'dashboard', label: 'Dash', icon: LayoutDashboard },
+  { value: 'pto', label: 'Time Off', icon: Plus },
+  { value: 'timeline', label: 'Timeline', icon: History },
+  { value: 'settings', label: 'Settings', icon: Settings },
+] as const;
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  
+  const [activeTab, setActiveTab] = useState<string>('dashboard');
+
   const reset = useLiveQuery(() => db.resets.orderBy('id').last());
 
-  if (reset === undefined) return <div className="p-8 text-center">Loading...</div>;
+  if (reset === undefined) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-8 text-center text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
 
   if (!reset) {
     return (
-      <div className="min-h-screen bg-background p-4 sm:p-8 flex flex-col items-center justify-center">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight">PTO Planner</h1>
@@ -36,107 +51,71 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-1">
-        <header className="sticky top-0 z-10 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="max-w-screen-xl mx-auto h-16 flex items-center justify-between px-4 sm:px-8">
-            <div className="font-bold text-xl flex-shrink-0">
-              PTO Planner
-            </div>
-            
-            <div className="hidden sm:block">
-              <TabsList className="bg-transparent h-auto p-0">
-                <TabsTrigger value="dashboard" className="px-4 py-2 flex items-center gap-2 data-[state=active]:bg-muted">
-                  <LayoutDashboard className="w-4 h-4" />
-                  Dash
-                </TabsTrigger>
-                <TabsTrigger value="pto" className="px-4 py-2 flex items-center gap-2 data-[state=active]:bg-muted">
-                  <Plus className="w-4 h-4" />
-                  Time Off
-                </TabsTrigger>
-                <TabsTrigger value="timeline" className="px-4 py-2 flex items-center gap-2 data-[state=active]:bg-muted">
-                  <History className="w-4 h-4" />
-                  Timeline
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="px-4 py-2 flex items-center gap-2 data-[state=active]:bg-muted">
-                  <Settings className="w-4 h-4" />
-                  Settings
-                </TabsTrigger>
+    <div className="flex min-h-screen flex-col bg-background">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex w-full flex-1 flex-col">
+        <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="mx-auto flex h-16 max-w-screen-xl items-center justify-between gap-4 px-4 sm:px-8">
+            <div className="text-xl font-bold">PTO Planner</div>
+
+            <div className="hidden items-center gap-2 sm:flex">
+              <TabsList className="h-auto bg-transparent p-0">
+                {tabs.map(({ value, label, icon: Icon }) => (
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    className="flex items-center gap-2 px-4 py-2 data-[state=active]:bg-muted"
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
+              <ThemeToggle />
             </div>
           </div>
         </header>
 
-        <main className="flex-1 w-full max-w-screen-xl mx-auto p-4 sm:p-8 pb-24 sm:pb-8">
-          <TabsContent value="dashboard" className="space-y-8 outline-none mt-0">
+        <main className="mx-auto w-full max-w-screen-xl flex-1 p-4 pb-24 sm:p-8 sm:pb-8">
+          <TabsContent value="dashboard" className="mt-0 space-y-8 outline-none">
             <Dashboard />
             <ProjectionCalculator />
           </TabsContent>
 
-          <TabsContent value="pto" className="space-y-8 outline-none mt-0">
+          <TabsContent value="pto" className="mt-0 space-y-8 outline-none">
             <PTOEntryForm onSuccess={() => setActiveTab('dashboard')} />
             <PTOList />
           </TabsContent>
 
-          <TabsContent value="timeline" className="space-y-8 outline-none mt-0">
+          <TabsContent value="timeline" className="mt-0 space-y-8 outline-none">
             <Timeline />
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-8 outline-none mt-0">
+          <TabsContent value="settings" className="mt-0 space-y-8 outline-none">
             <SettingsForm />
+            <Separator />
             <ImportExport />
-            <Card className="w-full max-w-4xl mx-auto">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-destructive">
-                  <AlertCircle className="w-5 h-5" />
-                  Danger Zone
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Button variant="destructive" className="w-full" onClick={() => {
-                  if (confirm('Are you absolutely sure? This will permanently delete all your PTO data.')) {
-                    db.delete().then(() => window.location.reload());
-                  }
-                }}>
-                  Reset All Data
-                </Button>
-              </CardContent>
-            </Card>
+            <Separator />
+            <ResetAllDataCard />
           </TabsContent>
         </main>
       </Tabs>
 
-      {/* Mobile Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background sm:hidden">
         <div className="grid h-16 grid-cols-4">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex flex-col items-center justify-center gap-1 ${activeTab === 'dashboard' ? 'text-primary' : 'text-muted-foreground'}`}
-          >
-            <LayoutDashboard className="w-5 h-5" />
-            <span className="text-xs">Dash</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('pto')}
-            className={`flex flex-col items-center justify-center gap-1 ${activeTab === 'pto' ? 'text-primary' : 'text-muted-foreground'}`}
-          >
-            <Plus className="w-5 h-5" />
-            <span className="text-xs">Time Off</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('timeline')}
-            className={`flex flex-col items-center justify-center gap-1 ${activeTab === 'timeline' ? 'text-primary' : 'text-muted-foreground'}`}
-          >
-            <History className="w-5 h-5" />
-            <span className="text-xs">Timeline</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`flex flex-col items-center justify-center gap-1 ${activeTab === 'settings' ? 'text-primary' : 'text-muted-foreground'}`}
-          >
-            <Settings className="w-5 h-5" />
-            <span className="text-xs">Settings</span>
-          </button>
+          {tabs.map(({ value, label, icon: Icon }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setActiveTab(value)}
+              className={cn(
+                'flex flex-col items-center justify-center gap-1',
+                activeTab === value ? 'text-primary' : 'text-muted-foreground'
+              )}
+            >
+              <Icon className="h-5 w-5" />
+              <span className="text-xs">{label}</span>
+            </button>
+          ))}
         </div>
       </nav>
     </div>
