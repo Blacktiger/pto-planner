@@ -4,8 +4,9 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { format, parseISO, isWeekend, eachDayOfInterval } from 'date-fns';
+import { format } from 'date-fns';
 import { CalendarPlus } from 'lucide-react';
+import { calculateTotalHours } from '@/utils/pto-calc';
 
 interface PTOEntryFormProps {
   onSuccess: () => void;
@@ -17,26 +18,11 @@ export function PTOEntryForm({ onSuccess }: PTOEntryFormProps) {
   const [hoursPerDay, setHoursPerDay] = useState<string>('8');
   const [description, setDescription] = useState<string>('');
 
-  const calculateTotalHours = () => {
-    try {
-      const start = parseISO(startDate);
-      const end = parseISO(endDate);
-      if (end < start) return 0;
-
-      let workDays = 0;
-      eachDayOfInterval({ start, end }).forEach(date => {
-        if (!isWeekend(date)) workDays++;
-      });
-
-      return workDays * parseFloat(hoursPerDay || '0');
-    } catch (e) {
-      return 0;
-    }
-  };
+  const calculateTotal = () => calculateTotalHours(startDate, endDate, parseFloat(hoursPerDay || '0'));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const totalHours = calculateTotalHours();
+    const totalHours = calculateTotal();
     if (totalHours <= 0) return;
 
     await db.entries.add({
@@ -53,7 +39,7 @@ export function PTOEntryForm({ onSuccess }: PTOEntryFormProps) {
     setDescription('');
   };
 
-  const total = calculateTotalHours();
+  const total = calculateTotal();
 
   return (
     <Card className="w-full max-w-md mx-auto">

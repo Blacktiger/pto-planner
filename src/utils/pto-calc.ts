@@ -12,6 +12,34 @@ import {
 } from 'date-fns';
 import type { TimelineEvent, BalanceReset, PTOEntry, AppSettings } from '../types/pto';
 
+/**
+ * Calculates the total PTO hours for a date range by counting weekday days
+ * and multiplying by hoursPerDay.
+ *
+ * @param startDate - ISO date string (yyyy-MM-dd)
+ * @param endDate   - ISO date string (yyyy-MM-dd)
+ * @param hoursPerDay - Hours of PTO taken per working day
+ * @returns Total hours, or 0 if the range is invalid or contains no weekdays
+ */
+export function calculateTotalHours(
+  startDate: string,
+  endDate: string,
+  hoursPerDay: number
+): number {
+  try {
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+    if (end < start) return 0;
+    let workDays = 0;
+    eachDayOfInterval({ start, end }).forEach(date => {
+      if (!isWeekend(date)) workDays++;
+    });
+    return workDays * hoursPerDay;
+  } catch {
+    return 0;
+  }
+}
+
 export type PTOCalcSettings = Pick<AppSettings, 'accrualRate' | 'maxBalance'>;
 
 export const DEFAULT_SETTINGS: PTOCalcSettings = {
