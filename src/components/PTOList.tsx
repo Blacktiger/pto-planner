@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { db } from '@/lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,12 +13,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Trash2, Calendar } from 'lucide-react';
+import { Trash2, Calendar, Pencil } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { EditPTOEntryForm } from '@/components/EditPTOEntryForm';
 
 export function PTOList() {
   const entries = useLiveQuery(() => db.entries.orderBy('startDate').toArray());
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const handleDelete = async () => {
     if (deleteId == null) return;
@@ -44,28 +46,46 @@ export function PTOList() {
           Manage PTO
         </h3>
         {entries.map((entry) => (
-          <Card key={entry.id}>
-            <CardContent className="flex items-center justify-between p-4">
-              <div>
-                <div className="font-medium">
-                  {format(parseISO(entry.startDate), 'MMM d, yyyy')}
-                  {entry.startDate !== entry.endDate &&
-                    ` - ${format(parseISO(entry.endDate), 'MMM d, yyyy')}`}
+          <React.Fragment key={entry.id}>
+            <Card className={entry.id === editingId ? 'ring-2 ring-primary' : ''}>
+              <CardContent className="flex items-center justify-between p-4">
+                <div>
+                  <div className="font-medium">
+                    {format(parseISO(entry.startDate), 'MMM d, yyyy')}
+                    {entry.startDate !== entry.endDate &&
+                      ` - ${format(parseISO(entry.endDate), 'MMM d, yyyy')}`}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {entry.description || 'PTO'} • {entry.totalHours} hours
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {entry.description || 'PTO'} • {entry.totalHours} hours
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={() => setDeleteId(entry.id!)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setEditingId(entry.id!)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => setDeleteId(entry.id!)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            {entry.id === editingId && (
+              <EditPTOEntryForm
+                entry={entry}
+                onSuccess={() => setEditingId(null)}
+                onCancel={() => setEditingId(null)}
+              />
+            )}
+          </React.Fragment>
         ))}
       </div>
 
