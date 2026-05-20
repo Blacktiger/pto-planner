@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { db } from '@/lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,18 +13,41 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Trash2, Calendar, Pencil } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { EditPTOEntryForm } from '@/components/EditPTOEntryForm';
+import { EditPTOEntryForm } from './EditPTOEntryForm';
+import { usePtoList } from './usePtoList';
 
 export function PTOList() {
-  const entries = useLiveQuery(() => db.entries.orderBy('startDate').toArray());
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const {
+    status,
+    entries,
+    queryError,
+    uiState,
+    startEdit,
+    cancelEdit,
+    startDelete,
+    cancelDelete,
+    confirmDelete,
+  } = usePtoList();
 
-  const handleDelete = async () => {
-    if (deleteId == null) return;
-    await db.entries.delete(deleteId);
-    setDeleteId(null);
-  };
+  if (status === 'loading') {
+    return (
+      <Card className="mx-auto w-full max-w-md">
+        <CardContent className="py-8 text-center text-muted-foreground">
+          Loading PTO entries...
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <Card className="mx-auto w-full max-w-md border-destructive">
+        <CardContent className="py-8 text-center text-destructive">
+          Error loading PTO entries: {queryError?.message || 'Unknown error'}
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!entries || entries.length === 0) {
     return (
@@ -45,9 +66,12 @@ export function PTOList() {
           <Calendar className="h-5 w-5" />
           Manage PTO
         </h3>
+        {uiState.error && (
+          <p className="text-sm text-destructive px-1">{uiState.error}</p>
+        )}
         {entries.map((entry) => (
           <React.Fragment key={entry.id}>
-            <Card className={entry.id === editingId ? 'ring-2 ring-primary' : ''}>
+            <Card className={entry.id === uiState.editingId ? 'ring-2 ring-primary' : ''}>
               <CardContent className="flex items-center justify-between p-4">
                 <div>
                   <div className="font-medium">
@@ -63,7 +87,7 @@ export function PTOList() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setEditingId(entry.id!)}
+                    onClick={() => startEdit(entry.id!)}
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -71,25 +95,25 @@ export function PTOList() {
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => setDeleteId(entry.id!)}
+                    onClick={() => startDelete(entry.id!)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </CardContent>
             </Card>
-            {entry.id === editingId && (
+            {entry.id === uiState.editingId && (
               <EditPTOEntryForm
                 entry={entry}
-                onSuccess={() => setEditingId(null)}
-                onCancel={() => setEditingId(null)}
+                onSuccess={cancelEdit}
+                onCancel={cancelEdit}
               />
             )}
           </React.Fragment>
         ))}
       </div>
 
-      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog open={uiState.deletingId !== null} onOpenChange={(open) => !open && cancelDelete()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this PTO entry?</AlertDialogTitle>
@@ -99,7 +123,7 @@ export function PTOList() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleDelete}>
+            <AlertDialogAction variant="destructive" onClick={confirmDelete}>
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

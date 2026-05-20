@@ -6,7 +6,7 @@ import * as fc from 'fast-check';
 import { eachDayOfInterval, isWeekend, parseISO } from 'date-fns';
 import { calculateTotalHours } from '@/utils/pto-calc';
 import { render, screen } from '@testing-library/react';
-import { EditPTOEntryForm } from '@/components/EditPTOEntryForm';
+import { EditPTOEntryForm } from '@/components/PTOList/EditPTOEntryForm';
 import type { PTOEntry } from '@/types/pto';
 
 // Mock @/lib/db to avoid IndexedDB errors in the test environment

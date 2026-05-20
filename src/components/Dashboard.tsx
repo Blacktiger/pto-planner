@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { calculateProjectedBalance, forecastCapDate } from '@/utils/pto-calc';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAppSettings } from '@/data/settings/useAppSettings';
 import { format, subDays, isAfter, parseISO } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -12,9 +12,10 @@ import { Badge } from '@/components/ui/badge';
 export function Dashboard() {
   const reset = useLiveQuery(() => db.resets.orderBy('id').last());
   const entries = useLiveQuery(() => db.entries.toArray());
-  const settings = useAppSettings();
+  const settingsState = useAppSettings();
 
-  if (!reset) return null;
+  if (!reset || settingsState.status === 'loading' || !settingsState.data) return null;
+  const settings = settingsState.data;
 
   const now = new Date();
   const today = format(now, 'yyyy-MM-dd');

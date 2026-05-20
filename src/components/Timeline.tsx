@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { calculateProjectedBalance } from '@/utils/pto-calc';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAppSettings } from '@/data/settings/useAppSettings';
 import { format, addMonths } from 'date-fns';
 import { ListTree, PlusCircle, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,9 +10,10 @@ import { SectionCard } from '@/components/section-card';
 export function Timeline() {
   const reset = useLiveQuery(() => db.resets.orderBy('id').last());
   const entries = useLiveQuery(() => db.entries.toArray());
-  const settings = useAppSettings();
+  const settingsState = useAppSettings();
 
-  if (!reset) return null;
+  if (!reset || settingsState.status === 'loading' || !settingsState.data) return null;
+  const settings = settingsState.data;
 
   const targetDate = format(addMonths(new Date(), 6), 'yyyy-MM-dd');
   const { timeline } = calculateProjectedBalance(reset, entries || [], targetDate, settings);

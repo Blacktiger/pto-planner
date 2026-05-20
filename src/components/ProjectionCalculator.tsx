@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { db } from '@/lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { calculateProjectedBalance } from '@/utils/pto-calc';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAppSettings } from '@/data/settings/useAppSettings';
 import { format, addMonths } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,9 +16,10 @@ export function ProjectionCalculator() {
 
   const reset = useLiveQuery(() => db.resets.orderBy('id').last());
   const entries = useLiveQuery(() => db.entries.toArray());
-  const settings = useAppSettings();
+  const settingsState = useAppSettings();
 
-  if (!reset) return null;
+  if (!reset || settingsState.status === 'loading' || !settingsState.data) return null;
+  const settings = settingsState.data;
 
   const { finalBalance, totalLost } = calculateProjectedBalance(
     reset,

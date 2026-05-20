@@ -280,9 +280,9 @@ Prioritized path from current code to target architecture. **Docs may describe s
 |----------|------|--------|
 | P0 | Document architecture (this file) | Done |
 | P0 | Settings wired to domain + UI | Done |
-| P1 | Introduce `data/` hooks: `useBalanceReset`, `usePtoEntries`, move `useAppSettings` | Planned |
-| P1 | Refactor features to component + `useFeature` pattern (`PtoList` first) | Planned |
-| P1 | `useProjectedBalance(targetDate)` shared hook | Planned |
+| P1 | Introduce `data/` hooks: `useBalanceReset`, `useSortedPtoEvents`, move `useAppSettings` | Done |
+| P1 | Refactor features to component + `useFeature` pattern (`PtoList` first) | Done |
+| P1 | `useProjectedBalance(targetDate)` shared hook | Done |
 | P2 | Balance reconciliation flow | Planned |
 | P2 | Colocate features in folders (`Dashboard/`, `Settings/`, …) | Planned |
 | P2 | Extract more shared layout components as patterns repeat | Ongoing |
