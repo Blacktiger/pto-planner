@@ -1,6 +1,6 @@
-# Domain rules
+# Domain Rules
 
-Pure business logic lives in `src/utils/pto-calc.ts` (future home: `src/domain/`). It has no React or database dependencies.
+Pure business logic lives in `src/utils/pto-calc.ts`. It has no React or database dependencies.
 
 ---
 
@@ -13,77 +13,66 @@ Resolved via `resolveSettings()` with defaults from `DEFAULT_SETTINGS`:
 | `accrualRate` | `8.3333333333` | Hours added each accrual period |
 | `maxBalance` | `240` | Maximum storable PTO hours |
 
-Stored in IndexedDB `settings` table; edited in Settings UI.
-
 **Fixed (not configurable):** Accruals occur on the **1st and 15th** of each month only.
 
 ---
 
-## Balance anchor (`resets`)
+## Balance Anchor (`resets`)
 
 Projection starts from the latest balance reset:
 
-- `balance` — hours available on `asOfDate`
-- Events before `asOfDate` are ignored when building the timeline from the reset forward
-
-Today, initial setup clears and inserts one reset. **Planned:** reconciliation updates reset and prunes old entries (see [ARCHITECTURE.md](./ARCHITECTURE.md#4-balance-reconciliation-planned-feature)).
+- `balance` — hours available on `asOfDate`.
+- **Initial Event:** Every projection begins with an `initial` event on the `asOfDate` to show the starting state.
+- **Accrual Exclusion:** To prevent double-counting, any regular accrual scheduled for the *same day* as the `asOfDate` is excluded. Accruals only begin **strictly after** the reset date.
 
 ---
 
-## Accrual events
+## Accrual Events
 
 `generateAccrualEvents(startDate, endDate, settings)`:
 
 1. Walk each month from `startOfMonth(startDate)` through `endDate`.
 2. For each month, consider the 1st and the 15th (15th = start of month + 14 days).
-3. Include a date if it falls within `[startDate, endDate]` (inclusive).
+3. Include a date if it is **strictly after** `startDate` and on or before `endDate`.
 4. Each event adds `settings.accrualRate` hours.
 
 ---
 
-## PTO entries
+## PTO Entries
 
-Each `PTOEntry` has `startDate`, `endDate`, `hoursPerDay`, and precomputed `totalHours`.
+Each `PTOEntry` represents a date range. For projection, each **weekday** in the range that falls after the reset date generates a deduction event of `hoursPerDay`.
 
-For projection, each **weekday** in `[startDate, endDate]` that is on or after the reset date and on or before the target date generates a deduction event of `hoursPerDay` hours.
-
-**Weekends are skipped.** Holidays are not modeled—narrow or shift date ranges manually if needed.
+**Weekends are skipped.** Holidays are not automatically modeled; users should adjust date ranges manually to account for them.
 
 ---
 
-## Event ordering
+## Event Types & Ordering
 
-All accrual and PTO events are sorted by date. On the **same date**, accruals run **before** PTO deductions.
+| Type | Meaning |
+|------|---------|
+| `initial` | The starting balance on the reset date |
+| `accrual` | Semi-monthly hours addition |
+| `pto` | Hours deduction for a single day of time off |
 
-This matters near the cap: accrual can push balance to the max and record `lostAmount` before PTO reduces balance the same day.
-
----
-
-## Cap handling
-
-When an accrual would push balance above `settings.maxBalance`:
-
-- Balance is clamped to `maxBalance`
-- `lostAmount` = overflow hours (counted in `totalLost`)
-- Timeline event includes `lostAmount` for display
-
-`forecastCapDate()` projects up to five years from the reset date and returns the first accrual date with `lostAmount > 0`, or `null`.
+**Ordering on the same date:** `accrual` events apply **before** `pto` deductions. This ensures that if you hit the cap on an accrual day but also take PTO, the cap loss is calculated correctly first.
 
 ---
 
-## API surface (functions)
+## Cap Handling
+
+When an accrual would push the balance above `settings.maxBalance`:
+- The balance is clamped to the maximum.
+- The overflow is recorded as `lostAmount`.
+
+`forecastCapDate()` projects up to five years forward and returns the first date where balance would be lost to the cap.
+
+---
+
+## API Surface
 
 | Function | Purpose |
 |----------|---------|
-| `generateAccrualEvents` | Accrual timeline slices |
-| `calculateProjectedBalance` | Full timeline + `finalBalance` + `totalLost` |
-| `forecastCapDate` | First cap-hit date |
-| `resolveSettings` | Merge stored settings with defaults |
-
-All projection functions accept optional `PTOCalcSettings` (default `DEFAULT_SETTINGS`).
-
----
-
-## Dashboard warnings
-
-UI uses `maxBalance - 10` as the “nearing cap” threshold. That constant is presentation policy, not domain—could move to settings later.
+| `calculateTotalHours` | Counts weekdays in a range |
+| `generateAccrualEvents` | Returns accrual timeline slices |
+| `calculateProjectedBalance` | Builds full timeline + final stats |
+| `forecastCapDate` | Identifies first cap-loss date |

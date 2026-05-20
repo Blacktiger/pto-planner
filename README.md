@@ -1,73 +1,44 @@
-# React + TypeScript + Vite
+# PTO Planner
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An offline-first, personal Progressive Web App (PWA) for tracking and forecasting Paid Time Off.
 
-Currently, two official plugins are available:
+## Key Features
+- **Deterministic Projections:** Forecasts your PTO balance up to 5 years forward based on your specific accrual rate and scheduled time off.
+- **Offline First:** Data is stored locally in your browser using IndexedDB (Dexie). No accounts or cloud sync required.
+- **Data Portability:** Easy JSON import and export for backups or moving data between devices.
+- **Cap Forecasting:** Automatically identifies when you will hit your PTO cap and how many hours you might lose.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
+- **Frontend:** React (TypeScript) + Vite
+- **Styling:** Tailwind CSS + shadcn/ui
+- **Persistence:** Dexie.js (IndexedDB)
+- **Date Math:** date-fns
 
-## React Compiler
+## Documentation
+- [Architecture](./docs/ARCHITECTURE.md) — 3-layer pattern and state management
+- [Domain Rules](./docs/DOMAIN.md) — How accruals and projections work
+- [Data Layer](./docs/DATA.md) — Schema and query hooks
+- [Testing](./docs/TESTING.md) — Our testing strategy
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting Started
 
-## Expanding the ESLint configuration
+### Prerequisites
+- Node.js (v18+)
+- npm
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Installation
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Scripts
+- `npm run dev`: Start dev server
+- `npm run build`: Production build
+- `npm run test`: Run Vitest suite
+- `npm run lint`: Run ESLint

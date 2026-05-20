@@ -1,13 +1,12 @@
-# Data layer
+# Data Layer
 
-Persistence uses **Dexie** (IndexedDB) in `src/lib/db.ts`. Database name: `PTODatabase`, schema version **1**.
+Persistence uses **Dexie** (IndexedDB) in `src/lib/db.ts`.
 
 ---
 
 ## Tables
 
 ### `entries`
-
 PTO time-off records.
 
 | Field | Type | Notes |
@@ -21,10 +20,7 @@ PTO time-off records.
 | `isFullDay` | boolean | `hoursPerDay >= 8` at entry time |
 | `createdAt` | number | Unix ms |
 
-Indexes: `++id`, `startDate`, `endDate`
-
 ### `resets`
-
 Balance anchor points.
 
 | Field | Type | Notes |
@@ -34,12 +30,7 @@ Balance anchor points.
 | `asOfDate` | ISO date string | Projection starts here |
 | `createdAt` | number | Unix ms |
 
-Indexes: `++id`, `asOfDate`
-
-**Usage today:** Components use `orderBy('id').last()` as the active reset.
-
 ### `settings`
-
 App configuration (singleton in practice).
 
 | Field | Type | Notes |
@@ -48,15 +39,37 @@ App configuration (singleton in practice).
 | `accrualRate` | number | Hours per 1st/15th accrual |
 | `maxBalance` | number | Cap in hours |
 
-Indexes: `++id`
+---
 
-**Usage today:** `clear()` + `add()` on save—only the latest row matters.
+## Standardized Query Pattern
+
+All database queries are wrapped in hooks under `src/data/` using a standardized reducer. This ensures UI components have consistent access to loading and error states.
+
+### Query State
+```typescript
+export type QueryStatus = 'loading' | 'success' | 'error';
+
+export interface QueryState<T> {
+  status: QueryStatus;
+  data: T | null;
+  error: Error | null;
+}
+```
+
+### Hooks Index
+
+| Hook | Table | Query |
+|------|-------|-------|
+| `useSortedPtoEvents` | `entries` | `db.entries.orderBy('startDate').toArray()` |
+| `useBalanceReset` | `resets` | `db.resets.orderBy('id').last()` |
+| `useAppSettings` | `settings` | `db.settings.orderBy('id').last()` + `resolveSettings` |
+| `useProjectedBalance` | multiple | Derived projection from resets, entries, and settings |
 
 ---
 
-## Import / export
+## Import / Export
 
-`ImportExport` component writes/reads JSON:
+The `ImportExport` feature writes/reads a JSON backup:
 
 ```json
 {
@@ -66,42 +79,17 @@ Indexes: `++id`
 }
 ```
 
-- **Export:** Downloads `pto-planner-backup-YYYY-MM-DD.json`
-- **Import:** Confirms overwrite, clears all three tables, `bulkAdd`s file contents, reloads page
-
-No schema version field in backup files yet—add when migrations exist.
+- **Export:** Downloads `pto-planner-backup-YYYY-MM-DD.json`.
+- **Import:** Overwrites current data after user confirmation and reloads the application.
 
 ---
 
-## Migrations
+## Transactions
 
-None beyond v1. When schema changes:
+Mutations involving multiple tables (like Import or the planned Balance Reconciliation) must use Dexie transactions to ensure atomicity:
 
-1. Bump `this.version(n)` in `PTODatabase`
-2. Document upgrade path in this file
-3. Consider backup version field in export JSON
-
----
-
-## Planned: balance reconciliation writes
-
-When implemented (see [ARCHITECTURE.md](./ARCHITECTURE.md)):
-
-1. Insert or replace active `resets` row with new balance + `asOfDate`
-2. `DELETE` from `entries` where `endDate < asOfDate` (exact predicate TBD in code review)
-3. Leave entries with `endDate >= asOfDate` unchanged
-
-Run in a Dexie transaction for atomicity.
-
----
-
-## Data hook conventions (target)
-
-| Hook | Query |
-|------|--------|
-| `useSortedPtoEvents` | `db.entries.orderBy('startDate').toArray()` |
-| `usePtoEntries` | `db.entries.toArray()` |
-| `useBalanceReset` | `db.resets.orderBy('id').last()` |
-| `useAppSettings` | `db.settings.orderBy('id').last()` → `resolveSettings` |
-
-Return `undefined` from `useLiveQuery` while loading; components/integration hooks treat `undefined` vs `null` consistently.
+```typescript
+await db.transaction('rw', db.entries, db.resets, db.settings, async () => {
+  // logic here
+});
+```
