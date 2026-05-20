@@ -1,32 +1,29 @@
-import { useState } from 'react';
-import { db } from '@/lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { calculateProjectedBalance } from '@/utils/pto-calc';
-import { useAppSettings } from '@/data/settings/useAppSettings';
-import { format, addMonths } from 'date-fns';
+import React from 'react';
+import { useProjectionCalculator } from './useProjectionCalculator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calculator } from 'lucide-react';
+import { Calculator, AlertTriangle } from 'lucide-react';
 import { SectionCard } from '@/components/section-card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export function ProjectionCalculator() {
-  const [targetDate, setTargetDate] = useState<string>(
-    format(addMonths(new Date(), 3), 'yyyy-MM-dd')
-  );
+  const { targetDate, setTargetDate, status, error, data } = useProjectionCalculator();
 
-  const reset = useLiveQuery(() => db.resets.orderBy('id').last());
-  const entries = useLiveQuery(() => db.entries.toArray());
-  const settingsState = useAppSettings();
+  if (status === 'error') {
+    return (
+      <Alert variant="destructive" className="w-full max-w-4xl mx-auto">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Error loading projection</AlertTitle>
+        <AlertDescription>{error?.message || 'Unknown database error'}</AlertDescription>
+      </Alert>
+    );
+  }
 
-  if (!reset || settingsState.status === 'loading' || !settingsState.data) return null;
-  const settings = settingsState.data;
+  if (status === 'loading' || !data) {
+    return null;
+  }
 
-  const { finalBalance, totalLost } = calculateProjectedBalance(
-    reset,
-    entries || [],
-    targetDate,
-    settings
-  );
+  const { finalBalance, totalLost } = data;
 
   return (
     <SectionCard icon={Calculator} title="Balance Projection">

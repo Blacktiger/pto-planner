@@ -1,8 +1,5 @@
-import { db } from '@/lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { calculateProjectedBalance, forecastCapDate } from '@/utils/pto-calc';
-import { useAppSettings } from '@/data/settings/useAppSettings';
-import { format, subDays, isAfter, parseISO } from 'date-fns';
+import { useDashboard } from './useDashboard';
+import { format, parseISO, isAfter } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { StatCard, StatValue } from '@/components/stat-card';
@@ -10,27 +7,24 @@ import { Wallet, TrendingUp, AlertTriangle, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export function Dashboard() {
-  const reset = useLiveQuery(() => db.resets.orderBy('id').last());
-  const entries = useLiveQuery(() => db.entries.toArray());
-  const settingsState = useAppSettings();
+  const { status, error, finalBalance, capDate, relevantEntries, settings } = useDashboard();
 
-  if (!reset || settingsState.status === 'loading' || !settingsState.data) return null;
-  const settings = settingsState.data;
+  if (status === 'error') {
+    return (
+      <Alert variant="destructive" className="w-full max-w-4xl mx-auto">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Error loading dashboard</AlertTitle>
+        <AlertDescription>{error?.message || 'Unknown database error'}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (status === 'loading' || !settings) {
+    return null;
+  }
 
   const now = new Date();
-  const today = format(now, 'yyyy-MM-dd');
-  const thirtyDaysAgo = subDays(now, 30);
   const capWarningThreshold = settings.maxBalance - 10;
-
-  const { finalBalance } = calculateProjectedBalance(reset, entries || [], today, settings);
-  const capDate = forecastCapDate(reset, entries || [], settings);
-
-  const relevantEntries = (entries || [])
-    .filter(entry => {
-      const endDate = parseISO(entry.endDate);
-      return isAfter(endDate, thirtyDaysAgo);
-    })
-    .sort((a, b) => a.startDate.localeCompare(b.startDate));
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl mx-auto">

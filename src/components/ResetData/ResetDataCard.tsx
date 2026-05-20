@@ -1,5 +1,3 @@
-import { useState } from 'react'
-import { db } from '@/lib/db'
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,14 +12,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { SectionCard } from '@/components/section-card'
+import { useResetData } from './useResetData'
 
-export function ResetAllDataCard() {
-  const [open, setOpen] = useState(false)
-
-  const handleReset = async () => {
-    await db.delete()
-    window.location.reload()
-  }
+export function ResetDataCard() {
+  const { isOpen, setIsOpen, handleReset } = useResetData();
 
   return (
     <SectionCard
@@ -29,7 +23,7 @@ export function ResetAllDataCard() {
       title="Danger Zone"
       titleClassName="text-destructive"
     >
-      <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
         <AlertDialogTrigger asChild>
           <Button variant="destructive" className="w-full">
             Reset All Data

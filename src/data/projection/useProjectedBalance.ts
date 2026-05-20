@@ -3,6 +3,13 @@ import { useBalanceReset } from '../balance/useBalanceReset';
 import { useSortedPtoEvents } from '../ptoEvents/useSortedPtoEvents';
 import { useAppSettings } from '../settings/useAppSettings';
 import type { QueryStatus } from '../types';
+import type { TimelineEvent } from '@/types/pto';
+
+export interface ProjectedBalance {
+  finalBalance: number;
+  totalLost: number;
+  timeline: TimelineEvent[];
+}
 
 export function useProjectedBalance(targetDate: string) {
   const resetsState = useBalanceReset();
@@ -28,7 +35,7 @@ export function useProjectedBalance(targetDate: string) {
       ? 'loading'
       : 'success';
 
-  let projection = null;
+  let projection: ProjectedBalance | null = null;
   if (status === 'success' && resetsState.data && settingsState.data) {
     projection = calculateProjectedBalance(
       resetsState.data,

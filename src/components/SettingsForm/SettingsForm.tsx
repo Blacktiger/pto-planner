@@ -1,48 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { db } from '@/lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import React from 'react';
+import { useSettingsForm } from './useSettingsForm';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Settings as SettingsIcon, Save } from 'lucide-react';
-import { DEFAULT_SETTINGS } from '@/utils/pto-calc';
+import { Settings as SettingsIcon, Save, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export function SettingsForm() {
-  const settings = useLiveQuery(() => db.settings.orderBy('id').last());
-  const [accrualRate, setAccrualRate] = useState<string>(DEFAULT_SETTINGS.accrualRate.toString());
-  const [maxBalance, setMaxBalance] = useState<string>(DEFAULT_SETTINGS.maxBalance.toString());
-  const [saved, setSaved] = useState(false);
+  const {
+    status,
+    error,
+    accrualRate,
+    setAccrualRate,
+    maxBalance,
+    setMaxBalance,
+    saved,
+    handleSubmit,
+  } = useSettingsForm();
 
-  useEffect(() => {
-    if (settings) {
-      setAccrualRate(settings.accrualRate.toString());
-      setMaxBalance(settings.maxBalance.toString());
-    }
-  }, [settings]);
+  if (status === 'error') {
+    return (
+      <Alert variant="destructive" className="w-full max-w-4xl mx-auto">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Error loading settings</AlertTitle>
+        <AlertDescription>{error?.message || 'Unknown database error'}</AlertDescription>
+      </Alert>
+    );
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const parsedAccrualRate = parseFloat(accrualRate);
-    const parsedMaxBalance = parseFloat(maxBalance);
-
-    if (!Number.isFinite(parsedAccrualRate) || parsedAccrualRate <= 0) {
-      return;
-    }
-    if (!Number.isFinite(parsedMaxBalance) || parsedMaxBalance <= 0) {
-      return;
-    }
-
-    await db.settings.clear();
-    await db.settings.add({
-      accrualRate: parsedAccrualRate,
-      maxBalance: parsedMaxBalance,
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
+  if (status === 'loading') {
+    return null;
+  }
 
   return (
     <Card className="w-full max-w-4xl mx-auto">

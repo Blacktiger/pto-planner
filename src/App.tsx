@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { db } from '@/lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { Dashboard } from '@/components/Dashboard';
 import { BalanceSetup } from '@/components/BalanceSetup';
 import { PTOEntryForm } from '@/components/PTOEntryForm';
@@ -9,12 +7,14 @@ import { ProjectionCalculator } from '@/components/ProjectionCalculator';
 import { Timeline } from '@/components/Timeline';
 import { ImportExport } from '@/components/ImportExport';
 import { SettingsForm } from '@/components/SettingsForm';
-import { ResetAllDataCard } from '@/components/reset-all-data-card';
+import { ResetDataCard } from '@/components/ResetData';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Settings, Plus, LayoutDashboard, History } from 'lucide-react';
+import { Settings, Plus, LayoutDashboard, History, AlertTriangle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { useBalanceReset } from '@/data/balance/useBalanceReset';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const tabs = [
   { value: 'dashboard', label: 'Dash', icon: LayoutDashboard },
@@ -25,10 +25,21 @@ const tabs = [
 
 function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const resetsState = useBalanceReset();
 
-  const reset = useLiveQuery(() => db.resets.orderBy('id').last());
+  if (resetsState.status === 'error') {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-8">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error loading application data</AlertTitle>
+          <AlertDescription>{resetsState.error?.message || 'Unknown database error'}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
-  if (reset === undefined) {
+  if (resetsState.status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center p-8 text-center text-muted-foreground">
         Loading...
@@ -36,7 +47,7 @@ function App() {
     );
   }
 
-  if (!reset) {
+  if (!resetsState.data) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8">
         <div className="w-full max-w-md space-y-8">
@@ -95,7 +106,7 @@ function App() {
             <Separator />
             <ImportExport />
             <Separator />
-            <ResetAllDataCard />
+            <ResetDataCard />
           </TabsContent>
         </main>
       </Tabs>

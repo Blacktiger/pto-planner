@@ -1,22 +1,26 @@
-import { db } from '@/lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { calculateProjectedBalance } from '@/utils/pto-calc';
-import { useAppSettings } from '@/data/settings/useAppSettings';
-import { format, addMonths } from 'date-fns';
-import { ListTree, PlusCircle, MinusCircle } from 'lucide-react';
+import { useTimeline } from './useTimeline';
+import { format } from 'date-fns';
+import { ListTree, PlusCircle, MinusCircle, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SectionCard } from '@/components/section-card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export function Timeline() {
-  const reset = useLiveQuery(() => db.resets.orderBy('id').last());
-  const entries = useLiveQuery(() => db.entries.toArray());
-  const settingsState = useAppSettings();
+  const { status, error, timeline } = useTimeline();
 
-  if (!reset || settingsState.status === 'loading' || !settingsState.data) return null;
-  const settings = settingsState.data;
+  if (status === 'error') {
+    return (
+      <Alert variant="destructive" className="w-full max-w-4xl mx-auto">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Error loading timeline</AlertTitle>
+        <AlertDescription>{error?.message || 'Unknown database error'}</AlertDescription>
+      </Alert>
+    );
+  }
 
-  const targetDate = format(addMonths(new Date(), 6), 'yyyy-MM-dd');
-  const { timeline } = calculateProjectedBalance(reset, entries || [], targetDate, settings);
+  if (status === 'loading') {
+    return null;
+  }
 
   return (
     <SectionCard icon={ListTree} title="Timeline (Next 6 Months)">
