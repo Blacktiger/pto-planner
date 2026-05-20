@@ -1,6 +1,6 @@
 import { useTimeline } from './useTimeline';
 import { format } from 'date-fns';
-import { ListTree, PlusCircle, MinusCircle, AlertTriangle } from 'lucide-react';
+import { ListTree, PlusCircle, MinusCircle, AlertTriangle, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SectionCard } from '@/components/section-card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -33,7 +33,9 @@ export function Timeline() {
           timeline.map((event, idx) => (
             <div key={`${event.date}-${event.type}-${idx}`} className="flex items-start gap-4">
               <div className="mt-1 shrink-0">
-                {event.type === 'accrual' ? (
+                {event.type === 'initial' ? (
+                  <History className="h-5 w-5 text-muted-foreground" />
+                ) : event.type === 'accrual' ? (
                   <PlusCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                 ) : (
                   <MinusCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -49,12 +51,14 @@ export function Timeline() {
                   <span
                     className={cn(
                       'font-medium',
-                      event.type === 'accrual'
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-blue-600 dark:text-blue-400'
+                      event.type === 'initial'
+                        ? 'text-muted-foreground'
+                        : event.type === 'accrual'
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-blue-600 dark:text-blue-400'
                     )}
                   >
-                    {event.type === 'accrual' ? '+' : '-'}
+                    {event.type === 'initial' ? '' : event.type === 'accrual' ? '+' : '-'}
                     {event.amount.toFixed(2)}h
                     {(event.lostAmount ?? 0) > 0 && (
                       <span className="ml-1 text-destructive sm:ml-2">

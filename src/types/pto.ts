@@ -1,4 +1,4 @@
-export type EntryType = 'pto' | 'accrual' | 'cap_loss';
+export type EntryType = 'pto' | 'accrual' | 'cap_loss' | 'initial';
 
 export interface PTOEntry {
   id?: number;

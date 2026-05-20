@@ -74,7 +74,7 @@ export function generateAccrualEvents(
     const day15 = addDays(day1, 14);
 
     [day1, day15].forEach(date => {
-      if ((isAfter(date, start) || isSameDay(date, start)) && 
+      if (isAfter(date, start) && 
           (isBefore(date, end) || isSameDay(date, end))) {
         events.push({
           type: 'accrual',
@@ -99,7 +99,15 @@ export function calculateProjectedBalance(
 ) {
   let currentBalance = reset.balance;
   let totalLost = 0;
-  const timeline: TimelineEvent[] = [];
+  const timeline: TimelineEvent[] = [
+    {
+      type: 'initial',
+      date: reset.asOfDate,
+      amount: reset.balance,
+      description: 'Starting Balance',
+      balanceAfter: reset.balance,
+    },
+  ];
 
   const rawEvents: Partial<TimelineEvent>[] = [
     ...generateAccrualEvents(reset.asOfDate, targetDate, settings)
