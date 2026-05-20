@@ -2,7 +2,7 @@ import { useAppSettings } from '@/data/settings/useAppSettings';
 import { useBalanceReset } from '@/data/balance/useBalanceReset';
 import { useSortedPtoEvents } from '@/data/ptoEvents/useSortedPtoEvents';
 import { calculateProjectedBalance, forecastCapDate } from '@/utils/pto-calc';
-import { format, subDays, isAfter, parseISO } from 'date-fns';
+import { format, isAfter, parseISO } from 'date-fns';
 import type { PTOEntry } from '@/types/pto';
 import type { PTOCalcSettings } from '@/utils/pto-calc';
 
@@ -67,17 +67,25 @@ export function useDashboard(): DashboardData {
 
   const now = new Date();
   const today = format(now, 'yyyy-MM-dd');
-  const thirtyDaysAgo = subDays(now, 30);
 
   const { finalBalance } = calculateProjectedBalance(reset, entries, today, settings);
   const capDate = forecastCapDate(reset, entries, settings);
 
-  const relevantEntries = entries
-    .filter(entry => {
-      const endDate = parseISO(entry.endDate);
-      return isAfter(endDate, thirtyDaysAgo);
-    })
-    .sort((a, b) => a.startDate.localeCompare(b.startDate));
+  // Split entries into upcoming and past
+  const upcomingEntries = entries
+    .filter((e) => isAfter(parseISO(e.startDate), now))
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+    .slice(0, 5);
+
+  const pastEntries = entries
+    .filter((e) => !isAfter(parseISO(e.startDate), now))
+    .sort((a, b) => b.startDate.localeCompare(a.startDate))
+    .slice(0, 2);
+
+  // Combine and sort chronologically for the display
+  const relevantEntries = [...pastEntries, ...upcomingEntries].sort((a, b) =>
+    a.startDate.localeCompare(b.startDate)
+  );
 
   return {
     status: 'success',
