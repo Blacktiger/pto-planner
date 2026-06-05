@@ -191,3 +191,31 @@ export function forecastCapDate(
   const capEvent = timeline.find(e => e.type === 'accrual' && (e.lostAmount || 0) > 0);
   return capEvent ? capEvent.date : null;
 }
+
+export function forecastMinimumBalance(
+  reset: BalanceReset,
+  entries: PTOEntry[],
+  settings: PTOCalcSettings = DEFAULT_SETTINGS
+): { balance: number; date: string | null } {
+  const maxDate = addMonths(parseISO(reset.asOfDate), 60);
+  const targetDateStr = format(maxDate, 'yyyy-MM-dd');
+  
+  const { timeline } = calculateProjectedBalance(reset, entries, targetDateStr, settings);
+  
+  if (timeline.length === 0) {
+    return { balance: reset.balance, date: reset.asOfDate };
+  }
+
+  let minEvent = timeline[0];
+  for (let i = 1; i < timeline.length; i++) {
+    // Check if the balance is strictly lower to get the earliest occurrence of the minimum balance
+    if (timeline[i].balanceAfter < minEvent.balanceAfter) {
+      minEvent = timeline[i];
+    }
+  }
+
+  return {
+    balance: minEvent.balanceAfter,
+    date: minEvent.date,
+  };
+}

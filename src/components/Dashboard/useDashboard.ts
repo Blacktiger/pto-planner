@@ -1,7 +1,7 @@
 import { useAppSettings } from '@/data/settings/useAppSettings';
 import { useBalanceReset } from '@/data/balance/useBalanceReset';
 import { useSortedPtoEvents } from '@/data/ptoEvents/useSortedPtoEvents';
-import { calculateProjectedBalance, forecastCapDate } from '@/utils/pto-calc';
+import { calculateProjectedBalance, forecastCapDate, forecastMinimumBalance } from '@/utils/pto-calc';
 import { format, isAfter, parseISO } from 'date-fns';
 import type { PTOEntry } from '@/types/pto';
 import type { PTOCalcSettings } from '@/utils/pto-calc';
@@ -11,6 +11,8 @@ export interface DashboardData {
   error: Error | null;
   finalBalance: number;
   capDate: string | null;
+  minBalance: number;
+  minBalanceDate: string | null;
   relevantEntries: PTOEntry[];
   settings: PTOCalcSettings | null;
 }
@@ -27,6 +29,8 @@ export function useDashboard(): DashboardData {
       error: settingsState.error || resetsState.error || entriesState.error,
       finalBalance: 0,
       capDate: null,
+      minBalance: 0,
+      minBalanceDate: null,
       relevantEntries: [],
       settings: null,
     };
@@ -43,6 +47,8 @@ export function useDashboard(): DashboardData {
       error: null,
       finalBalance: 0,
       capDate: null,
+      minBalance: 0,
+      minBalanceDate: null,
       relevantEntries: [],
       settings: null,
     };
@@ -60,6 +66,8 @@ export function useDashboard(): DashboardData {
       error: null,
       finalBalance: 0,
       capDate: null,
+      minBalance: 0,
+      minBalanceDate: null,
       relevantEntries: [],
       settings: settings || null,
     };
@@ -70,6 +78,7 @@ export function useDashboard(): DashboardData {
 
   const { finalBalance } = calculateProjectedBalance(reset, entries, today, settings);
   const capDate = forecastCapDate(reset, entries, settings);
+  const { balance: minBalance, date: minBalanceDate } = forecastMinimumBalance(reset, entries, settings);
 
   // Split entries into upcoming and past
   const upcomingEntries = entries
@@ -92,6 +101,8 @@ export function useDashboard(): DashboardData {
     error: null,
     finalBalance,
     capDate,
+    minBalance,
+    minBalanceDate,
     relevantEntries,
     settings,
   };

@@ -3,11 +3,11 @@ import { format, parseISO, isAfter } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { StatCard, StatValue } from '@/components/stat-card';
-import { Wallet, TrendingUp, AlertTriangle, Calendar } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, AlertTriangle, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export function Dashboard() {
-  const { status, error, finalBalance, capDate, relevantEntries, settings } = useDashboard();
+  const { status, error, finalBalance, capDate, minBalance, minBalanceDate, relevantEntries, settings } = useDashboard();
 
   if (status === 'error') {
     return (
@@ -26,8 +26,15 @@ export function Dashboard() {
   const now = new Date();
   const capWarningThreshold = settings.maxBalance - 10;
 
+  // Determine the warning/danger styling for the lowest balance
+  const minBalanceColor = minBalance < 40 
+    ? 'text-destructive' 
+    : minBalance < 80 
+      ? 'text-warning' 
+      : 'text-foreground';
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto">
       <StatCard
         icon={Wallet}
         label="Current Balance"
@@ -46,8 +53,19 @@ export function Dashboard() {
         caption={`Estimated date hitting ${settings.maxBalance}h`}
       />
 
+      <StatCard
+        icon={TrendingDown}
+        label="Lowest Forecast"
+        value={
+          <StatValue className={minBalanceColor}>
+            {minBalance.toFixed(2)}h
+          </StatValue>
+        }
+        caption={minBalanceDate ? `Lowest point on ${format(new Date(minBalanceDate + 'T00:00:00'), 'MMM d, yyyy')}` : 'No drop projected'}
+      />
+
       {finalBalance >= capWarningThreshold && (
-        <Alert className="md:col-span-2">
+        <Alert className="md:col-span-3">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Nearing your PTO cap</AlertTitle>
           <AlertDescription>
@@ -56,7 +74,7 @@ export function Dashboard() {
         </Alert>
       )}
 
-      <Card className="md:col-span-2">
+      <Card className="md:col-span-3">
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Calendar className="h-4 w-4" />
